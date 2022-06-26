@@ -44,7 +44,23 @@ def courses_for_lecturers(json_directory_path, output_json_path):
     :param json_directory_path: Path of the semsters_data files.
     :param output_json_path: Path of the output json file.
     """
-    pass
-
+    new_dict = {}
+    output_dict = {}
+    for file in json_directory_path:
+        if file.endswith(".json"):
+            with open(file, 'r') as json_file:
+                new_dict = json.load(json_file)
+            for id, stats in new_dict:
+                addition = [elem for elem in stats["lecturers"] if elem not in output_dict[stats["course_name"]]]
+                output_dict[stats["course_name"]].extend(addition)
+    final_dict = {}
+    for course, lecturers in output_dict:
+        for elem in lecturers:
+            final_dict[elem] = course
+    file_name = func3_output
+    completeName = os.path.join(output_json_path, file_name)
+    output_file = open(completeName, "w")
+    json.dump(final_dict, output_file, indent = 4)
+    output_file.close()
 
 
