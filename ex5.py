@@ -10,7 +10,6 @@ def names_of_registered_students(input_json_path, course_name):
     :param course_name: The name of the course.
     :return: List of the names of the students.
     """
-    dict1 = {}
     with open(input_json_path, 'r') as file:
         dict1 = json.load(file)
     ans = []
@@ -28,21 +27,19 @@ def enrollment_numbers(input_json_path, output_file_path):
     :param input_json_path: Path of the students database json file.
     :param output_file_path: Path of the output text file.
     """
-    new_dict = {}
     with open(input_json_path, 'r') as input:
         new_dict = json.load(input)
     output_dict = {}
-    for id, student in new_dict.items():
-        for course in student["registered_courses"]:
-            output_dict[course] = 0
-    for course_name, students in output_dict:
-        students = len(names_of_registered_students(input_json_path), course_name)
+    for student in new_dict.keys():
+        for course in new_dict[student]["registered_courses"]:
+            if course not in output_dict.keys():
+                output_dict[course] = 1
+            else:
+                output_dict[course] += 1
     with open(output_file_path, 'w') as output:
-        for course_name, students in output_dict:
-            output.write(course_name)
-            output.write(" ")
-            output.write(students)
-            output.write("\n")
+        for course in sorted(output_dict.keys()):
+            text = "\"" + course + "\" " + str(output_dict[course]) + "\n"
+            output.write(text)
 
 def courses_for_lecturers(json_directory_path, output_json_path):
     """
@@ -51,23 +48,20 @@ def courses_for_lecturers(json_directory_path, output_json_path):
     :param json_directory_path: Path of the semsters_data files.
     :param output_json_path: Path of the output json file.
     """
-    new_dict = {}
     output_dict = {}
-    for file in json_directory_path:
+    for file in os.listdir(json_directory_path):
         if file.endswith(".json"):
-            with open(file, 'r') as json_file:
-                new_dict = json.load(json_file)
-            for id, stats in new_dict:
-                addition = [elem for elem in stats["lecturers"] if elem not in output_dict[stats["course_name"]]]
-                output_dict[stats["course_name"]].extend(addition)
-    final_dict = {}
-    for course, lecturers in output_dict:
-        for elem in lecturers:
-            final_dict[elem] = course
-    file_name = func3_output
-    completeName = os.path.join(output_json_path, file_name)
-    output_file = open(completeName, "w")
-    json.dump(final_dict, output_file, indent = 4)
-    output_file.close()
+            file_path = os.path.join(json_directory_path, file)
+            with open(file_path, 'r') as input:
+                new_dict = json.load(input)
+            for id in new_dict.keys():
+               for lecturer in new_dict[id]["lecturers"]:
+                    if lecturer not in output_dict.keys():
+                       output_dict[lecturer] = [new_dict[id]["course_name"]]
+                    elif new_dict[id]["course_name"] not in output_dict[lecturer]:
+                        output_dict[lecturer].append(new_dict[id]["course_name"])
+    with open(output_json_path, "w") as output_file:
+        json.dump(output_dict, output_file, indent = 4)
+
 
 
